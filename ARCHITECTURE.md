@@ -6,14 +6,31 @@ changes. The rules that apply to every task are in AGENTS.md.
 
 ## Current state
 
-Nothing is built yet. The repository holds only its standing documents
-(README.md, AGENTS.md, CLAUDE.md, PROMPT.md and this file) and a
-`.gitignore`. There is no container, no Makefile and no code.
+The first build has landed: an interactive page on the quantum-confined Stark
+effect in a 1D finite well. The sections below describe what exists.
 
-Everything else in this file is the specification to build from: the
-container, the Makefile and its targets, the backend and the page. When the
-first build lands, replace this section with what actually exists, and keep
-it true from then on.
+- One pipeline and one endpoint: `POST /api/qcse` takes V0 (eV), L (nm) and
+  F (kV/cm), validated by `QCSERequest` in `models.py`. It returns the tilted
+  potential and up to two confined states. Each state has its exact
+  (finite-difference) energy and wavefunction, the zero-field state, and the
+  perturbative energies to second order. The entry point is
+  `pipeline.compute_qcse`; the method and its limits are in
+  `docs/0001-numerical-method.md`.
+- The page (`src/web/`) uses Plotly, which handles interactive line plots with
+  hover and zoom out of the box, and needs nothing custom. It draws the
+  response and shows a results table. Wavefunction height on the plot is a
+  drawing scale only.
+- Validation errors and "no confined state" both reach the page as one plain
+  message (HTTP 422).
+- Dependencies: fastapi, uvicorn, numpy, scipy (tridiagonal eigensolver);
+  dev: pytest, httpx (FastAPI's TestClient), ruff; frontend: plotly.js-dist-min.
+- `.gitattributes` pins LF line endings, because files are used inside a Linux
+  container even when the repository is cloned on Windows.
+- `tests/smoke_check.py` is the script `make smoke` runs inside the running
+  container. It is not a pytest file.
+- `docker-demo-example/` is the course's starter example, kept for reference;
+  it is not part of the build and ruff ignores it.
+- There is no `data/` directory: the app has no data.
 
 ## Stack
 
