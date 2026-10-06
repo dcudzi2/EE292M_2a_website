@@ -1,0 +1,21 @@
+[project]
+name = "qcse-app"
+version = "0.1.0"
+description = "Interactive visualisation of the quantum-confined Stark effect in a 1D finite well"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "fastapi>=0.118",   # typed API; /docs is the contract
+    "uvicorn>=0.37",    # ASGI server
+    "numpy>=2.3.3",     # grids and linear algebra
+    "scipy>=1.16.2",    # tridiagonal eigensolver for the Schrodinger equation
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4",
+    "httpx>=0.28",      # required by FastAPI's TestClient
+    "ruff>=0.13",
+]
+
+[tool.uv]
+package = false

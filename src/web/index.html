@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quantum-confined Stark effect</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+  <script src="/vendor/plotly.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+<header>
+  <h1>Quantum-confined Stark effect</h1>
+  <p class="subtitle">How an electric field reshapes the energy levels of an electron trapped in a quantum well</p>
+</header>
+
+<main>
+  <section id="about">
+    <h2>What is the quantum-confined Stark effect?</h2>
+    <p>
+      In quantum mechanics an electron is not a point at a definite position. It is described by a
+      <strong>wavefunction</strong>, ψ(z), and |ψ(z)|² is the probability of finding the electron at
+      position z. An electron that is free can have any energy. An electron that is
+      <em>confined</em> can only have certain discrete energies, much as a guitar string fixed at both
+      ends can only vibrate at certain frequencies.
+    </p>
+    <p>
+      A <strong>quantum well</strong> confines an electron in one direction. It is a thin layer of
+      material, a few nanometres thick, in which the electron's potential energy is lower than in the
+      layers on either side. Think of it as a trench of width L and depth V<sub>0</sub>. Because the
+      trench is so narrow, only a few energy levels fit inside. The lowest is the
+      <em>ground state</em>, with a single bump in ψ. The next is the <em>first excited state</em>,
+      with one positive and one negative lobe. The wavefunctions leak a little into the walls, since
+      the walls are finite and not infinitely high.
+    </p>
+    <p>
+      Now apply a uniform <strong>electric field</strong> F across the layer. The field adds a
+      potential energy that rises linearly with position, eFz, so the flat floor of the trench
+      becomes a tilted ramp. The electron slides towards the low side and its wavefunction becomes
+      lopsided. The energy of the ground state <em>drops</em>, and the first excited state is pushed
+      <em>up</em>. For weak fields the shift grows as F², which is the Stark effect. It is called
+      "quantum-confined" because the walls keep the electron from simply escaping down the ramp, so
+      the levels shift a lot without being smeared out. In a bulk crystal the same field would
+      quickly pull electrons and holes apart and wash out the effect.
+    </p>
+    <p>
+      Second-order perturbation theory gives the size of the shift for a weak field. For an
+      infinitely deep well the ground state moves by
+      ΔE ≈ −(15 − π²)/(24π⁴) · m e² F² L⁴ / ħ². The steep dependence on well width (L⁴) is why
+      wider wells respond much more strongly.
+    </p>
+
+    <h3>Why it matters</h3>
+    <ul>
+      <li>
+        <strong>Electro-absorption modulators.</strong> The colour (photon energy) at which a quantum
+        well starts to absorb light is set by the gap between electron and hole levels. A field
+        shifts these levels, so a voltage can switch a well between absorbing and transparent at a
+        chosen wavelength. The switching takes picoseconds, which makes these devices (and modulated
+        lasers built on them) a workhorse for encoding data onto light in fibre-optic networks.
+      </li>
+      <li>
+        <strong>LEDs and lasers.</strong> In gallium-nitride (InGaN/GaN) blue and white LEDs the
+        crystal has a large built-in electric field, a consequence of its polar structure. This field
+        tilts every well, pushes electrons and holes to opposite sides, and lowers the emitted photon
+        energy (a red-shift). It also reduces the overlap of electron and hole wavefunctions, so they
+        recombine and emit light less readily. This lowers efficiency, and the colour drifts with
+        drive current as injected carriers partly screen the field. Much LED engineering (thinner
+        wells, non-polar and semi-polar substrates, strain engineering) aims to tame the QCSE.
+      </li>
+    </ul>
+  </section>
+
+  <section id="model">
+    <h2>Interactive model: a 1D finite well in an electric field</h2>
+    <p class="note">
+      An idealised academic example: an electron with the free-electron mass, a well floor at 0 eV
+      for |z| &lt; L/2 and barriers at V<sub>0</sub>. The field adds eFz. Energies and wavefunctions
+      are computed by the server for every setting, both by solving the Schrödinger equation
+      numerically and by second-order perturbation theory. Each wavefunction is drawn on the line at
+      its own energy, with its height in arbitrary units.
+    </p>
+
+    <div class="workspace">
+      <div class="plot-area">
+        <div id="plot" role="img" aria-label="Potential energy and wavefunctions versus position"></div>
+        <p id="error" class="error" role="alert" hidden></p>
+      </div>
+
+      <aside class="controls" aria-label="Model parameters">
+        <label for="v0"><span>Barrier height V<sub>0</sub></span>
+          <output id="v0-value" for="v0"></output>
+        </label>
+        <input id="v0" type="range" min="0.1" max="3" step="0.05" value="1">
+
+        <label for="width"><span>Well width L</span>
+          <output id="width-value" for="width"></output>
+        </label>
+        <input id="width" type="range" min="0.5" max="5" step="0.05" value="1.5">
+
+        <label for="field"><span>Electric field F</span>
+          <output id="field-value" for="field"></output>
+        </label>
+        <input id="field" type="range" min="-3000" max="3000" step="25" value="0">
+
+        <button id="reset" type="button">Reset to defaults</button>
+
+        <label class="checkbox">
+          <input id="show-zero" type="checkbox"> Also show zero-field wavefunctions
+        </label>
+
+        <table id="results" aria-live="polite">
+          <caption>Energies (eV)</caption>
+          <thead>
+            <tr>
+              <th scope="col">State</th>
+              <th scope="col">E (exact)</th>
+              <th scope="col">ΔE exact</th>
+              <th scope="col">ΔE 2nd order</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <ul id="notes" class="note"></ul>
+      </aside>
+    </div>
+  </section>
+
+  <section id="method">
+    <h2>How the numbers are computed</h2>
+    <ul>
+      <li>
+        <strong>Exact (numerical):</strong> −ħ²/(2m) ψ″ + V(z) ψ = E ψ with
+        V(z) = V<sub>well</sub>(z) + eFz is discretised by finite differences on 1600 points spanning
+        the well plus 4 nm of barrier on each side, and the resulting matrix is diagonalised.
+      </li>
+      <li>
+        <strong>Perturbation theory:</strong> H′ = eFz. The first-order shift
+        E⁽¹⁾ = ⟨n|eFz|n⟩ is zero by symmetry. The second-order shift
+        E⁽²⁾ = Σ<sub>k≠n</sub> |⟨k|eFz|n⟩|² / (E<sub>n</sub> − E<sub>k</sub>) is summed over every
+        zero-field state of the same grid.
+      </li>
+      <li>
+        At weak field the two agree. At strong field they part ways, because higher orders matter
+        and because the tilted barrier lets the electron tunnel out (which this model ignores).
+      </li>
+    </ul>
+    <p class="note">
+      Reference: <a href="https://en.wikipedia.org/wiki/Quantum-confined_Stark_effect">Quantum-confined
+      Stark effect (Wikipedia)</a>; D. A. B. Miller et al., Phys. Rev. B 32, 1043 (1985).
+      The API contract is at <a href="/docs">/docs</a>.
+    </p>
+  </section>
+</main>
+</body>
+</html>

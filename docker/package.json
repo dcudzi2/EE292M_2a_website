@@ -1,0 +1,9 @@
+{
+  "name": "qcse-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Frontend libraries for the QCSE page, installed into the image at build time",
+  "dependencies": {
+    "plotly.js-dist-min": "^3.1.0"
+  }
+}
