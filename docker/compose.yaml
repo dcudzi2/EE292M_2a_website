@@ -1,0 +1,34 @@
+# Run through the Makefile, which sets COMPOSE_PROJECT_NAME, HOST_UID and HOST_GID.
+# Relative paths below are relative to this file: "." is docker/, ".." is the repository.
+
+x-common: &common
+  user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+  environment:
+    HOME: /tmp
+  volumes:
+    - ..:/work
+
+services:
+  app:
+    <<: *common
+    build:
+      context: .
+      target: runtime
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+
+  uv:
+    <<: *common
+    profiles: [tools]
+    build:
+      context: .
+      target: uv-tools
+    working_dir: /work/docker
+
+  node:
+    <<: *common
+    profiles: [tools]
+    build:
+      context: .
+      target: node-tools
+    working_dir: /work/docker
